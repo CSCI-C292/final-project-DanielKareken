@@ -25,11 +25,12 @@ public class LockedDoor : MonoBehaviour
 
     public void OnMouseDown()
     {
-        if (runtimeData.keysCollected[id] == key && !unlocked)
+        if (runtimeData.keysCollected[id] && !unlocked)
         {
             unlockDoor();
         }
-        else if (runtimeData.keysCollected[id] != key)
+
+        else if (runtimeData.keysCollected[id])
         {
             print("This door is locked and needs a key.");
         }
@@ -37,7 +38,7 @@ public class LockedDoor : MonoBehaviour
 
     public void unlockDoor()
     {
-        transform.position = Vector3.up;
+        transform.position += Vector3.up;
         unlocked = true;
     }
 }

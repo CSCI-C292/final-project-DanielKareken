@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,20 +19,39 @@ public class Player : MonoBehaviour
     float _jumpForce = 6f;
     float verticalVelocity;
     float gravity = 20f;
+
+    //event variables
+    bool locked;
     
     // Start is called before the first frame update
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        locked = false;
+
+        GameEvents.NoteDisplay += OnDisplay;
+        GameEvents.ShowPuzzleDisplay += OnDisplay;
     }
 
     // Update is called once per frame
     void Update()
     {
         //allow these actions
-        Aim();
-        Movement();
-        Jump();
+        if (!locked)
+        {
+            Aim();
+            Movement();
+            Jump();
+            //Crouch();
+        }
+
+        else {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                GameEvents.InvokeDisplayHide();
+                OnDisplayHide();
+            }
+        }
     }
 
     //allows player to rotate camera
@@ -89,5 +109,17 @@ public class Player : MonoBehaviour
         {
             verticalVelocity = _jumpForce;
         }
+    }
+
+    void OnDisplay(object sender, EventArgs args)
+    {
+        locked = true;
+        Cursor.lockState = CursorLockMode.Confined;
+    }
+
+    void OnDisplayHide()
+    {
+        locked = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 }

@@ -6,7 +6,8 @@ using UnityEngine;
 
 public class RuntimeData : ScriptableObject
 {
-    public GameObject[] keysCollected;
+    public bool[] keysCollected;
+    public string currentPassword;
 
     //public GameplayState CurrentGameplayState;
 }
