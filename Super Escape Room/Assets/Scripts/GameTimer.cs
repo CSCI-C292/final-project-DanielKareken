@@ -5,6 +5,7 @@ using UnityEngine;
 public class GameTimer : MonoBehaviour
 {
     public RuntimeData runtimeData;
+    public int timeLimit;
 
     bool gameTimerOn;
 
@@ -12,7 +13,7 @@ public class GameTimer : MonoBehaviour
     void Start()
     {
         gameTimerOn = true;
-        GameEvents.gameTimer = 60f;
+        GameEvents.gameTimer = timeLimit;
     }
 
     // Update is called once per frame
@@ -26,6 +27,7 @@ public class GameTimer : MonoBehaviour
         {
             //end game
             gameTimerOn = false;
+            GameEvents.InvokeLevelOver("timeout");
         }
     }
 }

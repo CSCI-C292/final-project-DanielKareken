@@ -7,8 +7,20 @@ public class NoteUI : MonoBehaviour
 {
     [SerializeField] GameObject text;
 
-    public void updateText(string description)
+    private void Start()
     {
-        text.GetComponent<Text>().text = description;
+        GameEvents.NoteDisplay += OnNotePickup;
+        GameEvents.LevelComplete += OnLevelComplete;
+    }
+
+    public void OnNotePickup(object sender, NoteEventArgs args)
+    {
+        text.GetComponent<Text>().text = args.description;
+    }
+
+    void OnLevelComplete(object sender, LevelEventArgs args)
+    {
+        GameEvents.NoteDisplay -= OnNotePickup;
+        GameEvents.LevelComplete -= OnLevelComplete;
     }
 }

@@ -7,9 +7,9 @@ public class CanvasManager : MonoBehaviour
 {
     [SerializeField] GameObject Crosshair;
 
-    [SerializeField] NoteUI NoteUI;
-
-    [SerializeField] CombinationUI ComboUI;
+    [SerializeField] GameObject NoteUI;
+    [SerializeField] GameObject ComboUI;
+    [SerializeField] GameObject GameMenuUI;
 
     [SerializeField] RuntimeData runtimeData;
 
@@ -18,10 +18,12 @@ public class CanvasManager : MonoBehaviour
     {
         NoteUI.gameObject.SetActive(false);
         ComboUI.gameObject.SetActive(false);
+        GameMenuUI.gameObject.SetActive(false);
 
         GameEvents.NoteDisplay += OnNotePickup;
         GameEvents.ShowPuzzleDisplay += OnPuzzleDisplay;
         GameEvents.DisplayHide += OnDisplayHide;
+        GameEvents.LevelComplete += OnLevelComplete;
     }
 
     // Update is called once per frame
@@ -33,7 +35,6 @@ public class CanvasManager : MonoBehaviour
     void OnNotePickup(object sender, NoteEventArgs args)
     {
         NoteUI.gameObject.SetActive(true);
-        NoteUI.updateText(args.description);
     }
 
     void OnPuzzleDisplay(object sender, EventArgs args)
@@ -45,5 +46,14 @@ public class CanvasManager : MonoBehaviour
     {
         ComboUI.gameObject.SetActive(false);
         NoteUI.gameObject.SetActive(false);
+    }
+
+    void OnLevelComplete(object sender, LevelEventArgs args)
+    {
+        GameMenuUI.gameObject.SetActive(true);
+        GameEvents.NoteDisplay -= OnNotePickup;
+        GameEvents.ShowPuzzleDisplay -= OnPuzzleDisplay;
+        GameEvents.DisplayHide -= OnDisplayHide;
+        GameEvents.LevelComplete -= OnLevelComplete;
     }
 }

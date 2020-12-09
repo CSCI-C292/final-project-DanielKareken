@@ -9,5 +9,6 @@ public class RuntimeData : ScriptableObject
     public bool[] keysCollected;
     public string currentPassword;
 
-    //public GameplayState CurrentGameplayState;
+    //main menu options
+    public bool musicOn = true;
 }

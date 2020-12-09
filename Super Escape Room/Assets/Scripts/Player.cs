@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -12,25 +13,42 @@ public class Player : MonoBehaviour
     [SerializeField] Camera _cam;
 
     [SerializeField] RuntimeData _runtimeData;
+
+    [SerializeField] GameObject camPos;
+    [SerializeField] GameObject crouchPos;
+    [SerializeField] GameObject secretPos;
+
+    [SerializeField] AudioSource walkingSound;
+
+    CharacterController character;
     
     //for player movement
     Vector3 movementVec;
-    float _moveSpeed = 6f;
-    float _jumpForce = 6f;
+    public float maxMoveSpeed = 6f;
+    float currentMoveSpeed;
+    public float jumpForce = 6f;
     float verticalVelocity;
-    float gravity = 20f;
+    public float gravity = 20f;
+    public bool crouching;
+    public float height;
 
     //event variables
-    bool locked;
+    public bool locked;
     
     // Start is called before the first frame update
     void Start()
     {
+        character = gameObject.GetComponent<CharacterController>();
+
         Cursor.lockState = CursorLockMode.Locked;
         locked = false;
+        crouching = false;
+        character.height = height;
+        currentMoveSpeed = maxMoveSpeed;
 
         GameEvents.NoteDisplay += OnDisplay;
         GameEvents.ShowPuzzleDisplay += OnDisplay;
+        GameEvents.LevelComplete += OnLevelComplete;
     }
 
     // Update is called once per frame
@@ -41,8 +59,7 @@ public class Player : MonoBehaviour
         {
             Aim();
             Movement();
-            Jump();
-            //Crouch();
+            Crouch();
         }
 
         else {
@@ -51,6 +68,8 @@ public class Player : MonoBehaviour
                 GameEvents.InvokeDisplayHide();
                 OnDisplayHide();
             }
+
+            walkingSound.Stop();
         }
     }
 
@@ -77,17 +96,30 @@ public class Player : MonoBehaviour
         Vector3 sideMovement = transform.right * Input.GetAxis("Horizontal");
         Vector3 forwardMovement = transform.forward * Input.GetAxis("Vertical");
         movementVec = sideMovement + forwardMovement;
-        movementVec *= _moveSpeed * Time.deltaTime;
+        movementVec *= currentMoveSpeed * Time.deltaTime;
 
         ApplyGravity();
 
-        GetComponent<CharacterController>().Move(movementVec);
+        
+        character.Move(movementVec);
+
+        if (character.velocity.x != 0f || character.velocity.z != 0f)
+        {
+            if (character.isGrounded && !walkingSound.isPlaying)
+            {
+                walkingSound.Play();
+            }
+        }
+        else
+        {
+            walkingSound.Stop();
+        }
     }
 
     //for player jump
     void ApplyGravity()
     {
-        if (GetComponent<CharacterController>().isGrounded)
+        if (character.isGrounded)
         {
             verticalVelocity -= gravity * Time.deltaTime;
 
@@ -105,9 +137,41 @@ public class Player : MonoBehaviour
     //allows player to jump
     void Jump()
     {
-        if (GetComponent<CharacterController>().isGrounded && Input.GetKeyDown(KeyCode.Space))
+        if (character.isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
-            verticalVelocity = _jumpForce;
+            verticalVelocity = jumpForce;
+        }
+    }
+
+    //allows player to crouch
+    void Crouch()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            if (crouching)
+            {
+                crouching = false;
+             
+            }
+            else
+            {
+                crouching = true;
+            }
+        }
+
+        if (crouching)
+        {
+            _cam.transform.position = Vector3.Lerp(_cam.transform.position, crouchPos.transform.position, Time.deltaTime * 5f);
+            //transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
+            currentMoveSpeed = maxMoveSpeed / 2;
+            //character.height = height / 2;   
+        }
+        else
+        {
+            _cam.transform.position = Vector3.Lerp(_cam.transform.position, camPos.transform.position, Time.deltaTime * 5f);
+            //transform.position = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
+            currentMoveSpeed = maxMoveSpeed;
+            //character.height = height;
         }
     }
 
@@ -121,5 +185,32 @@ public class Player : MonoBehaviour
     {
         locked = false;
         Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    //when player exits through door, level is completed
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Exit")
+        {
+            //next level
+            GameEvents.InvokeLevelOver("complete");
+        }
+    }
+
+    public void teleport()
+    {
+        character.enabled = false;
+        transform.position = secretPos.transform.position;
+        character.enabled = true;
+    }
+
+    void OnLevelComplete(object sender, EventArgs args)
+    {
+        locked = true;
+        Cursor.lockState = CursorLockMode.Confined;
+
+        GameEvents.NoteDisplay -= OnDisplay;
+        GameEvents.ShowPuzzleDisplay -= OnDisplay;
+        GameEvents.LevelComplete -= OnLevelComplete;
     }
 }
